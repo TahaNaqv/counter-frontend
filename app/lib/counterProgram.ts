@@ -1,3 +1,8 @@
+/**
+ * Creates the Anchor program client, derives the counter PDA, and fetches counter account data.
+ * Depends on the IDL (generated from the Rust program) and constants.
+ */
+
 import type { Connection } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
@@ -8,6 +13,7 @@ import { COUNTER_PROGRAM_ID } from "./constants";
 
 const programId = new PublicKey(COUNTER_PROGRAM_ID);
 
+/** PDA is deterministic from seeds; seeds must match the program (["counter", user]). Returns same address the program uses. */
 export function getCounterPda(
   walletPublicKey: PublicKey,
   programIdKey: PublicKey = programId
@@ -19,6 +25,7 @@ export function getCounterPda(
   return pda;
 }
 
+/** AnchorProvider = connection + wallet for signing. Program is built from IDL (program ID from idl.address); used to send transactions. */
 export function getCounterProgram(
   connection: Connection,
   wallet: Wallet
@@ -29,6 +36,7 @@ export function getCounterProgram(
   return new Program(idl as unknown as CounterProgram, provider);
 }
 
+/** Reads the counter account at the PDA. fetchNullable returns null if the account does not exist yet (not initialized). */
 export async function fetchCounter(
   program: Program<CounterProgram>,
   counterPda: PublicKey

@@ -1,3 +1,4 @@
+// Buffer is a Node API; Solana/Anchor use it in the browser. Polyfill on window before any code that uses it (avoids "Buffer is not defined").
 import { Buffer } from "buffer";
 if (typeof window !== "undefined") {
   (window as unknown as { Buffer: typeof Buffer }).Buffer = Buffer;
@@ -20,6 +21,7 @@ import { ENDPOINT } from "./lib/constants";
 import "./app.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
+// Injected into the document head (fonts, etc.).
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -33,6 +35,7 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+// Root HTML shell; Meta, Links, Scripts are React Router primitives.
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -51,7 +54,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Wrap app in Solana wallet providers: ConnectionProvider (RPC), WalletProvider (wallets + autoConnect), WalletModalProvider (connect UI). Outlet renders current route (e.g. Counter page).
 export default function App() {
+  // Only Phantom and Solflare; stable array so the provider does not re-create unnecessarily.
   const wallets = useMemo(
     () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
     []
@@ -68,6 +73,7 @@ export default function App() {
   );
 }
 
+// Catches render/loader errors and route errors (e.g. 404); shows message and optional stack in dev.
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";

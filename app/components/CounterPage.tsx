@@ -1,3 +1,8 @@
+/**
+ * Main UI: connect wallet, show count or "Not initialized", and buttons to initialize / increment / decrement / reset / close.
+ * Uses useConnection, useWallet, and the counter program client.
+ */
+
 import { useEffect, useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -16,7 +21,9 @@ export function CounterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [txPending, setTxPending] = useState(false);
+  // connection = RPC; wallet = connect state + publicKey + adapter; count = current value or null if not initialized; loading/error/txPending = UI state.
 
+  // Get Anchor wallet adapter, build program client, derive user's counter PDA, fetch; set count or null (not initialized); handle errors.
   const loadCount = async () => {
     if (!wallet.publicKey) return;
     setLoading(true);
@@ -35,6 +42,7 @@ export function CounterPage() {
     }
   };
 
+  // Load count when wallet is connected; clear state when disconnected. Depends on wallet.connected and wallet.publicKey.
   useEffect(() => {
     if (wallet.connected && wallet.publicKey) {
       loadCount();
@@ -44,6 +52,7 @@ export function CounterPage() {
     }
   }, [wallet.connected, wallet.publicKey?.toBase58()]);
 
+  // Run an instruction (e.g. initialize, increment), then refetch count; set txPending and handle errors.
   const runAction = async (action: () => Promise<string>) => {
     if (!wallet.publicKey) return;
     setTxPending(true);
@@ -58,6 +67,7 @@ export function CounterPage() {
     }
   };
 
+  // Not connected: show connect prompt and WalletMultiButton (wrapped in ClientOnly for hydration).
   if (!wallet.connected || !wallet.publicKey) {
     return (
       <main className="flex flex-col items-center justify-center min-h-[60vh] gap-6 p-4">
@@ -74,6 +84,7 @@ export function CounterPage() {
     );
   }
 
+  // Adapter not ready yet right after connect; show short message.
   if (!wallet.wallet?.adapter) {
     return (
       <main className="flex flex-col items-center justify-center min-h-[60vh] gap-6 p-4">
@@ -88,6 +99,7 @@ export function CounterPage() {
   const program = getCounterProgram(connection, anchorWallet);
   const counterPda = getCounterPda(wallet.publicKey);
 
+  // Connected: wallet button, loading/error, count display, action buttons.
   return (
     <main className="flex flex-col items-center justify-center min-h-[60vh] gap-6 p-4">
       <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
@@ -118,6 +130,7 @@ export function CounterPage() {
 
       {!loading && (
         <div className="flex flex-wrap gap-3 justify-center">
+          {/* Initialize: only when count is null. +1 / -1 / Reset / Close: only when counter exists. All disabled while txPending. */}
           <button
             className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={txPending || count !== null}
