@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -6,9 +7,14 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
 
 import type { Route } from "./+types/root";
+import { ENDPOINT } from "./lib/constants";
 import "./app.css";
+import "@solana/wallet-adapter-react-ui/styles.css";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -42,7 +48,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  const wallets = useMemo(
+    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
+    []
+  );
+
+  return (
+    <ConnectionProvider endpoint={ENDPOINT}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <Outlet />
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

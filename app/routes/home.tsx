@@ -1,13 +1,13 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { CounterPage } from "../components/CounterPage";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Counter - Devnet" },
+    { name: "description", content: "Solana counter program on Devnet" },
   ];
 }
 
 export default function Home() {
-  return <Welcome />;
+  return <CounterPage />;
 }
